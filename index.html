@@ -2,29 +2,31 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Ajuste de Notas - Portal Logística</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <!-- Libs -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  
+
   <!-- CSS DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.3.2/css/fixedHeader.dataTables.min.css">
-  
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdn.datatables.net/fixedheader/3.3.2/css/fixedHeader.dataTables.min.css"
+  />
+
   <style>
-    /* 🎨 Variáveis do Tema */
     :root {
       --cor-fundo-dashboard: #1e1e2f;
       --cor-cabecalho: linear-gradient(90deg, #00c6ff, #0072ff);
       --cor-texto-cabecalho: #ffffff;
       --cor-linha-par: #2b2b40;
       --cor-linha-impar: #242437;
-      --cor-filtro: #ffffff;
+      --cor-filtro: #3a3a5a;
     }
 
     body {
@@ -68,7 +70,6 @@
       white-space: nowrap;
     }
 
-    /* Linha de filtros */
     thead tr.filters th {
       background: #2b2b40;
       padding: 4px;
@@ -81,7 +82,7 @@
       background: var(--cor-filtro);
       border: none;
       border-radius: 4px;
-      color: #000;
+      color: #eee;
     }
 
     table.dataTable th,
@@ -123,17 +124,25 @@
     Papa.parse(csvUrl, {
       download: true,
       header: true,
-      complete: function(results) {
+      complete: function (results) {
         const data = results.data;
+
         if (!data.length || Object.keys(data[0]).length === 0) {
           alert("Falha ao carregar dados.");
           return;
         }
 
+        // Limpa espaços em branco e normaliza dados
+        data.forEach(row => {
+          colunasDesejadas.forEach(col => {
+            if (row[col]) row[col] = row[col].trim();
+          });
+        });
+
         const headers = Object.keys(data[0]);
-        const headerRow = document.querySelector('#planilha thead tr.headers');
-        const filterRow = document.querySelector('#planilha thead tr.filters');
-        const tableBody = document.querySelector('#planilha tbody');
+        const headerRow = document.querySelector("#planilha thead tr.headers");
+        const filterRow = document.querySelector("#planilha thead tr.filters");
+        const tableBody = document.querySelector("#planilha tbody");
 
         // Cabeçalhos e filtros
         colunasDesejadas.forEach(col => {
@@ -143,35 +152,53 @@
           }
         });
 
-        // Linhas
+        // Linhas da tabela com "Sem nota" na coluna NOTAS vazia
         data.forEach(row => {
-          let rowHtml = '<tr>';
+          let rowHtml = "<tr>";
           colunasDesejadas.forEach(col => {
-            rowHtml += `<td>${row[col] || ''}</td>`;
+            let valor = row[col] || "";
+            if (col === "NOTAS" && valor === "") {
+              valor = "Sem nota";
+            }
+            rowHtml += `<td>${valor}</td>`;
           });
-          rowHtml += '</tr>';
+          rowHtml += "</tr>";
           tableBody.innerHTML += rowHtml;
         });
 
-        // DataTable
-        const table = $('#planilha').DataTable({
+        // Inicializa DataTable
+        const table = $("#planilha").DataTable({
           paging: false,
           searching: true,
           info: false,
           scrollX: true,
-          fixedHeader: true // Cabeçalho e filtros fixos
+          fixedHeader: true
         });
 
-        // Filtros dinâmicos
+        // Filtros dinâmicos ajustados para ignorar vazio
         table.columns().every(function (i) {
           const column = this;
-          const select = $(filterRow).find('select').eq(i);
+          const select = $(filterRow).find("select").eq(i);
+
+          // Recolhe dados únicos para filtro, substitui vazio por "Sem nota" na coluna NOTAS
+          const uniqueData = [];
           column.data().unique().sort().each(function (d) {
-            if (d) select.append(`<option value="${d}">${d}</option>`);
+            let val = d.trim();
+            if (val === "" && colunasDesejadas[i] === "NOTAS") {
+              val = "Sem nota";
+            }
+            if (!uniqueData.includes(val)) uniqueData.push(val);
           });
-          select.on('change', function () {
+
+          uniqueData.forEach(val => {
+            select.append(`<option value="${val}">${val}</option>`);
+          });
+
+          select.on("change", function () {
             const val = $.fn.dataTable.util.escapeRegex($(this).val());
-            column.search(val ? '^' + val + '$' : '', true, false).draw();
+            column
+              .search(val ? "^" + val + "$" : "", true, false)
+              .draw();
           });
         });
       }

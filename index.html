@@ -46,20 +46,12 @@
       border-collapse: collapse;
     }
 
-    th {
+    thead tr th {
       background: var(--cor-cabecalho);
       color: var(--cor-texto-cabecalho);
-      padding: 10px;
+      padding: 8px;
       text-align: center;
-      white-space: nowrap;
-      vertical-align: bottom;
       font-weight: bold;
-    }
-
-    td {
-      padding: 8px 12px;
-      border-bottom: 1px solid #444;
-      white-space: nowrap;
     }
 
     tbody tr:nth-child(even) {
@@ -70,16 +62,26 @@
       background-color: var(--cor-linha-impar);
     }
 
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #444;
+      white-space: nowrap;
+    }
+
+    /* Linha de filtros */
+    thead tr.filters th {
+      background: #2b2b40;
+      padding: 4px;
+    }
+
     .filter-select {
-      margin-top: 6px;
       width: 100%;
-      box-sizing: border-box;
       padding: 4px;
       font-size: 12px;
       background: var(--cor-filtro);
-      color: #000;
       border: none;
       border-radius: 4px;
+      color: #000;
     }
 
     table.dataTable th,
@@ -90,25 +92,15 @@
     div.dataTables_wrapper {
       overflow-x: auto;
     }
-
-    ::-webkit-scrollbar {
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background-color: #555;
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background-color: #2e2e3e;
-    }
   </style>
 </head>
 <body>
   <h1>Ajuste de Notas das Cargas Agendadas</h1>
   <table id="planilha" class="display nowrap">
-    <thead><tr></tr></thead>
+    <thead>
+      <tr class="headers"></tr>
+      <tr class="filters"></tr>
+    </thead>
     <tbody></tbody>
   </table>
 
@@ -139,27 +131,29 @@
         }
 
         const headers = Object.keys(data[0]);
-        const tableHead = $('#planilha thead tr');
-        const tableBody = $('#planilha tbody');
+        const headerRow = document.querySelector('#planilha thead tr.headers');
+        const filterRow = document.querySelector('#planilha thead tr.filters');
+        const tableBody = document.querySelector('#planilha tbody');
 
-        // Criar cabeçalhos com filtro
+        // Cabeçalhos e filtros
         colunasDesejadas.forEach(col => {
           if (headers.includes(col)) {
-            tableHead.append(`<th>${col}<br><select class="filter-select"><option value="">Filtrar</option></select></th>`);
+            headerRow.innerHTML += `<th>${col}</th>`;
+            filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`;
           }
         });
 
-        // Criar linhas
+        // Linhas
         data.forEach(row => {
           let rowHtml = '<tr>';
           colunasDesejadas.forEach(col => {
             rowHtml += `<td>${row[col] || ''}</td>`;
           });
           rowHtml += '</tr>';
-          tableBody.append(rowHtml);
+          tableBody.innerHTML += rowHtml;
         });
 
-        // Inicializa a tabela com filtros e cabeçalho fixo
+        // DataTable
         const table = $('#planilha').DataTable({
           paging: false,
           searching: true,
@@ -168,14 +162,13 @@
           fixedHeader: true
         });
 
-        // Configura filtros dinâmicos
-        table.columns().every(function () {
+        // Filtros dinâmicos
+        table.columns().every(function (i) {
           const column = this;
-          const select = $(column.header()).find('select');
+          const select = $(filterRow).find('select').eq(i);
           column.data().unique().sort().each(function (d) {
             if (d) select.append(`<option value="${d}">${d}</option>`);
           });
-
           select.on('change', function () {
             const val = $.fn.dataTable.util.escapeRegex($(this).val());
             column.search(val ? '^' + val + '$' : '', true, false).draw();

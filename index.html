@@ -26,7 +26,7 @@
 
   <script>
     const sheetID = "1uGSZ8hmaN2iB3x9uuUAoi91omc9JMODF3HVIFHgt4Yc";
-    const sheetName = "Página1";
+    const sheetName = "dados";
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
 
     Papa.parse(csvUrl, {
@@ -36,7 +36,12 @@
         const data = results.data;
         const tableHead = $('#planilha thead tr');
         const tableBody = $('#planilha tbody');
-        
+
+        if (!data || data.length === 0) {
+          tableHead.append("<th colspan='100%'>Nenhum dado encontrado.</th>");
+          return;
+        }
+
         // Cabeçalhos
         const headers = Object.keys(data[0]);
         headers.forEach(h => tableHead.append(`<th>${h}</th>`));
@@ -45,7 +50,7 @@
         data.forEach(row => {
           let rowHtml = '<tr>';
           headers.forEach(h => {
-            rowHtml += `<td>${row[h]}</td>`;
+            rowHtml += `<td>${row[h] || ""}</td>`;
           });
           rowHtml += '</tr>';
           tableBody.append(rowHtml);

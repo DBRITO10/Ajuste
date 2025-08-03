@@ -12,69 +12,56 @@
     body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
     table { width: 100%; font-size: 14px; }
     th { background: #16a085; color: white; }
-    input, select { width: 100%; box-sizing: border-box; }
   </style>
 </head>
 <body>
   <h1>Ajuste de Notas das Cargas Agendadas</h1>
   <table id="planilha" class="display">
-    <thead>
-      <tr></tr>
-    </thead>
+    <thead><tr></tr></thead>
     <tbody></tbody>
   </table>
+  <p id="erro" style="color:red;"></p>
 
   <script>
     const sheetID = "1uGSZ8hmaN2iB3x9uuUAoi91omc9JMODF3HVIFHgt4Yc";
     const sheetName = "dados";
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
 
+    console.log("Tentando buscar CSV em:", csvUrl);
+
     Papa.parse(csvUrl, {
       download: true,
       header: true,
+      error: function(err) {
+        console.error("Erro no PapaParse:", err);
+        $('#erro').text("Falha ao carregar CSV. Verifique compartilhamento e nome da aba.");
+      },
       complete: function(results) {
-        const data = results.data;
-        const tableHead = $('#planilha thead tr');
-        const tableBody = $('#planilha tbody');
-
-        if (!data || data.length === 0) {
-          tableHead.append("<th colspan='100%'>Nenhum dado encontrado.</th>");
+        if (!results.data || results.data.length === 0) {
+          $('#erro').text("Dados não encontrados ou acessíveis. Verifique o CSV manualmente.");
           return;
         }
-
-        // Cabeçalhos
+        const data = results.data;
         const headers = Object.keys(data[0]);
-        headers.forEach(h => tableHead.append(`<th>${h}</th>`));
-
-        // Linhas
+        headers.forEach(h => $('#planilha thead tr').append(`<th>${h}</th>`));
         data.forEach(row => {
           let rowHtml = '<tr>';
-          headers.forEach(h => {
-            rowHtml += `<td>${row[h] || ""}</td>`;
-          });
+          headers.forEach(h => rowHtml += `<td>${row[h]||""}</td>`);
           rowHtml += '</tr>';
-          tableBody.append(rowHtml);
+          $('#planilha tbody').append(rowHtml);
         });
-
-        // Ativa o DataTable com filtros
         $('#planilha').DataTable({
-          paging: false,
-          searching: true,
-          info: false,
-          scrollX: true,
+          paging: false, searching: true, info: false, scrollX: true,
           initComplete: function () {
             this.api().columns().every(function () {
               const column = this;
-              const select = $('<select><option value="">Filtrar</option></select>')
+              const sel = $('<select><option value="">Filtrar</option></select>')
                 .appendTo($(column.header()).empty())
                 .on('change', function () {
                   const val = $.fn.dataTable.util.escapeRegex($(this).val());
                   column.search(val ? '^' + val + '$' : '', true, false).draw();
                 });
-
-              column.data().unique().sort().each(function (d) {
-                if (d) select.append('<option value="' + d + '">' + d + '</option>');
-              });
+              column.data().unique().sort().each(d => { if (d) sel.append(`<option value="${d}">${d}</option>`); });
             });
           }
         });

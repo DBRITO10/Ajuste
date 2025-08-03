@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Ajuste de Notas - Portal Logística</title>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -14,15 +14,12 @@
       background: #f4f4f4;
       padding: 20px;
     }
-    h1 {
-      color: #2c3e50;
-    }
     table {
       width: 100%;
       font-size: 14px;
     }
     th {
-      background: #2980b9;
+      background: #16a085;
       color: white;
     }
     input, select {
@@ -40,29 +37,37 @@
 
   <script>
     const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
-    const sheetName = "Página1"; // Altere se o nome da aba for diferente
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
+    const sheetName = "dados";
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 
     Papa.parse(csvUrl, {
       download: true,
       header: true,
       complete: function(results) {
         const data = results.data;
+        if (!data.length || Object.keys(data[0]).length === 0) {
+          alert("Falha ao carregar dados. Verifique se a aba contém dados válidos.");
+          return;
+        }
+
+        const headers = Object.keys(data[0]);
         const tableHead = $('#planilha thead tr');
         const tableBody = $('#planilha tbody');
 
-        const headers = Object.keys(data[0]);
+        // Criar os cabeçalhos
         headers.forEach(h => tableHead.append(`<th>${h}</th>`));
 
+        // Criar as linhas
         data.forEach(row => {
           let rowHtml = '<tr>';
           headers.forEach(h => {
-            rowHtml += `<td>${row[h] || ""}</td>`;
+            rowHtml += `<td>${row[h] || ''}</td>`;
           });
           rowHtml += '</tr>';
           tableBody.append(rowHtml);
         });
 
+        // Inicializar DataTable com filtros
         $('#planilha').DataTable({
           paging: false,
           searching: true,
@@ -79,11 +84,15 @@
                 });
 
               column.data().unique().sort().each(function (d) {
-                if (d) select.append('<option value="' + d + '">' + d + '</option>');
+                if (d) select.append(`<option value="${d}">${d}</option>`);
               });
             });
           }
         });
+      },
+      error: function(err) {
+        console.error("Erro ao carregar CSV:", err);
+        alert("Erro ao carregar planilha. Verifique se está pública e o nome da aba.");
       }
     });
   </script>

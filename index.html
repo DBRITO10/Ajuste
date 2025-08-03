@@ -72,11 +72,9 @@
     }
 
     td {
-      padding: 8px 10px;
+      padding: 8px 12px;
       border-bottom: 1px solid #444;
       white-space: nowrap;
-      text-align: center;
-      vertical-align: middle;
     }
 
     thead tr.filters th {
@@ -86,36 +84,18 @@
 
     .filter-select {
       width: 100%;
-      padding: 6px 10px;
+      padding: 6px;
       font-size: 13px;
       background: var(--cor-filtro);
       border: none;
       border-radius: 4px;
       color: #eee;
-      text-align: center;
     }
 
     table.dataTable th,
     table.dataTable td {
-      text-align: center !important;
-      vertical-align: middle !important;
-      padding: 8px 10px !important;
-      min-width: 80px;
-    }
-
-    table.dataTable th:nth-child(4),
-    table.dataTable td:nth-child(4) {
       min-width: 120px;
-    }
-
-    table.dataTable th:nth-child(5),
-    table.dataTable td:nth-child(5) {
-      min-width: 150px;
-    }
-
-    table.dataTable th:nth-child(6),
-    table.dataTable td:nth-child(6) {
-      min-width: 140px;
+      text-align: center;
     }
 
     div.dataTables_wrapper {
@@ -225,8 +205,14 @@
           searching: true,
           info: false,
           scrollX: true,
-          fixedHeader: true
+          fixedHeader: true,
+          autoWidth: false
         });
+
+        // 👇 Corrige o desalinhamento após carregar os dados
+        setTimeout(() => {
+          table.columns.adjust().draw();
+        }, 300);
 
         table.columns().every(function (i) {
           const column = this;

@@ -7,68 +7,94 @@
   <title>Ajuste de Notas - Portal Logística</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #1abc9c; color: white; }
+    table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background: #16a085; color: white; }
     tr:nth-child(even) { background: #f9f9f9; }
     input, select { width: 100%; padding: 4px; box-sizing: border-box; }
-    button { padding: 6px 12px; background: #27ae60; color: white; border: none; cursor: pointer; border-radius: 4px; }
-    button:hover { background: #219150; }
   </style>
 </head>
 <body>
   <h1>Ajuste de Notas das Cargas Agendadas</h1>
+
   <table>
     <thead>
       <tr>
         <th>SENHA</th>
         <th>DATA</th>
-        <th>FORNECEDOR</th>
+        <th>CENTRAL</th>
+        <th>CARGA/TRANSPORTE</th>
+        <th>ORDEM DE COMPRA</th>
         <th>NOTAS</th>
         <th>STATUS DA CARGA</th>
-        <th>AÇÃO</th>
+        <th>FORNECEDOR</th>
+        <th>TIPO DE PRODUTO</th>
+        <th>LINHA DE SEPARAÇÃO</th>
+        <th>Qtde Volumes</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="tabela-corpo">
       <tr>
         <td>19328</td>
         <td>02/08/2025</td>
-        <td>BOM PASTOR</td>
-        <td><input type="text" value="234548"></td>
+        <td>PINHEIROS</td>
+        <td>CARGA: 112264</td>
+        <td>4500063446</td>
+        <td><input type="text" value="234548" onchange="autoSalvar(this)"></td>
         <td>
-          <select>
-            <option>OK NO AJUSTE</option>
+          <select onchange="autoSalvar(this)">
+            <option selected>OK NO AJUSTE</option>
             <option>CANCELADA</option>
             <option>REAGENDADA</option>
           </select>
         </td>
-        <td><button onclick="salvar(this)">Salvar</button></td>
+        <td>BOM PASTOR</td>
+        <td>COLCHÕES</td>
+        <td>GRANDEZA 05</td>
+        <td>97</td>
       </tr>
       <tr>
         <td>19353</td>
         <td>02/08/2025</td>
-        <td>DESIGN</td>
-        <td><input type="text" value=""></td>
+        <td>PINHEIROS</td>
+        <td>CARGA: 34519</td>
+        <td>4500064677</td>
+        <td><input type="text" value="" onchange="autoSalvar(this)"></td>
         <td>
-          <select>
+          <select onchange="autoSalvar(this)">
             <option>OK NO AJUSTE</option>
             <option selected>CANCELADA</option>
             <option>REAGENDADA</option>
           </select>
         </td>
-        <td><button onclick="salvar(this)">Salvar</button></td>
+        <td>DESIGN</td>
+        <td>COLCHÕES</td>
+        <td>GRANDEZA 05</td>
+        <td>100</td>
       </tr>
+      <!-- Adicione mais linhas conforme necessário -->
     </tbody>
   </table>
 
   <script>
-    function salvar(btn) {
-      const row = btn.parentElement.parentElement;
-      const senha = row.children[0].textContent;
-      const notas = row.children[3].children[0].value;
-      const status = row.children[4].children[0].value;
+    function autoSalvar(elemento) {
+      const linha = elemento.closest('tr');
+      const dados = {
+        senha: linha.children[0].textContent,
+        data: linha.children[1].textContent,
+        central: linha.children[2].textContent,
+        carga: linha.children[3].textContent,
+        ordemCompra: linha.children[4].textContent,
+        notas: linha.children[5].querySelector('input')?.value || '',
+        status: linha.children[6].querySelector('select')?.value || '',
+        fornecedor: linha.children[7].textContent,
+        tipoProduto: linha.children[8].textContent,
+        linhaSeparacao: linha.children[9].textContent,
+        volumes: linha.children[10].textContent
+      };
 
-      alert(`Salvo!\nSenha: ${senha}\nNotas: ${notas}\nStatus: ${status}`);
+      console.log('Alteração salva:', dados);
+      // Aqui você pode enviar via fetch() para API ou Google Sheets futuramente
     }
   </script>
 </body>

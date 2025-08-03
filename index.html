@@ -14,23 +14,58 @@
       background: #f4f4f4;
       padding: 20px;
     }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
     table {
       width: 100%;
       font-size: 14px;
+      border-collapse: separate;
+      border-spacing: 0;
     }
+
     th {
       background: #16a085;
       color: white;
+      padding: 10px;
+      text-align: center;
+      white-space: nowrap;
     }
-    input, select {
+
+    td {
+      background: #fff;
+      padding: 8px 12px;
+      border-bottom: 1px solid #ddd;
+      white-space: nowrap;
+    }
+
+    /* Ajusta espaçamento e largura mínima para melhor leitura */
+    table.dataTable th,
+    table.dataTable td {
+      min-width: 120px;
+    }
+
+    /* Estilo dos selects de filtro */
+    select {
       width: 100%;
       box-sizing: border-box;
+      padding: 4px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Ajusta rolagem horizontal */
+    div.dataTables_wrapper {
+      overflow-x: auto;
     }
   </style>
 </head>
 <body>
   <h1>Ajuste de Notas das Cargas Agendadas</h1>
-  <table id="planilha" class="display">
+  <table id="planilha" class="display nowrap">
     <thead><tr></tr></thead>
     <tbody></tbody>
   </table>
@@ -54,10 +89,10 @@
         const tableHead = $('#planilha thead tr');
         const tableBody = $('#planilha tbody');
 
-        // Criar os cabeçalhos
+        // Criar cabeçalhos
         headers.forEach(h => tableHead.append(`<th>${h}</th>`));
 
-        // Criar as linhas
+        // Criar linhas
         data.forEach(row => {
           let rowHtml = '<tr>';
           headers.forEach(h => {
@@ -67,7 +102,7 @@
           tableBody.append(rowHtml);
         });
 
-        // Inicializar DataTable com filtros
+        // Inicializar DataTable
         $('#planilha').DataTable({
           paging: false,
           searching: true,
@@ -77,7 +112,7 @@
             this.api().columns().every(function () {
               const column = this;
               const select = $('<select><option value="">Filtrar</option></select>')
-                .appendTo($(column.header()).empty())
+                .appendTo($(column.header()))
                 .on('change', function () {
                   const val = $.fn.dataTable.util.escapeRegex($(this).val());
                   column.search(val ? '^' + val + '$' : '', true, false).draw();

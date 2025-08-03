@@ -4,19 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Ajuste de Notas - Portal Logística</title>
-
-  <!-- jQuery + DataTables -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-
-  <!-- FixedHeader -->
-  <script src="https://cdn.datatables.net/fixedheader/3.3.3/js/dataTables.fixedHeader.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.3.3/css/fixedHeader.dataTables.min.css">
-
-  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -39,8 +30,7 @@
 </head>
 <body>
   <h1>Ajuste de Notas das Cargas Agendadas</h1>
-
-  <table id="planilha" class="display nowrap">
+  <table id="planilha" class="display">
     <thead><tr></tr></thead>
     <tbody></tbody>
   </table>
@@ -64,8 +54,10 @@
         const tableHead = $('#planilha thead tr');
         const tableBody = $('#planilha tbody');
 
+        // Criar os cabeçalhos
         headers.forEach(h => tableHead.append(`<th>${h}</th>`));
 
+        // Criar as linhas
         data.forEach(row => {
           let rowHtml = '<tr>';
           headers.forEach(h => {
@@ -75,12 +67,12 @@
           tableBody.append(rowHtml);
         });
 
-        const tabela = $('#planilha').DataTable({
+        // Inicializar DataTable com filtros
+        $('#planilha').DataTable({
           paging: false,
           searching: true,
           info: false,
           scrollX: true,
-          fixedHeader: true, // 👈 Fixar cabeçalho
           initComplete: function () {
             this.api().columns().every(function () {
               const column = this;

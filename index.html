@@ -9,10 +9,12 @@
   <!-- Libs -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <!-- CSS DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.dataTables.min.css">
 
   <style>
     :root {
@@ -103,17 +105,17 @@
     }
 
     @media (max-width: 768px) {
-      table.dataTable {
-        display: block;
-        width: 100%;
+      div.dataTables_wrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
-
+      table.dataTable {
+        display: block;
+        width: max-content;
+      }
       .filter-select {
         font-size: 14px;
       }
-
       td,
       th {
         font-size: 12px;
@@ -200,7 +202,11 @@
           searching: true,
           info: false,
           scrollX: true,
-          autoWidth: false
+          autoWidth: false,
+          fixedHeader: {
+            header: true,
+            headerOffset: 0
+          }
         });
 
         setTimeout(() => {

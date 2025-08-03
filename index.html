@@ -3,7 +3,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Ajuste de Notas - Portal Logística</title>
+  <title>Recebimento/Simonetti</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Libs -->
@@ -96,7 +96,7 @@
   </style>
 </head>
 <body>
-  <h1>Ajuste de Notas das Cargas Agendadas</h1>
+  <h1>Recebimento/Simonetti</h1>
   <table id="planilha" class="display nowrap">
     <thead>
       <tr class="headers"></tr>
@@ -114,7 +114,7 @@
       "SENHA",
       "DATA",
       "CENTRAL",
-      "CARGA/TRANSPORTE",   // CORRIGIDO aqui
+      "CARGA/TRANSPORTE",
       "NOTAS",
       "STATUS DA CARGA",
       "FORNECEDOR",
@@ -132,10 +132,8 @@
           return;
         }
 
-        // Trim nos nomes das colunas (fields)
         results.meta.fields = results.meta.fields.map(f => f.trim());
 
-        // Ajusta chaves de cada row para nomes trimados
         data.forEach(row => {
           Object.keys(row).forEach(k => {
             if (k !== k.trim()) {
@@ -145,7 +143,6 @@
           });
         });
 
-        // Limpa espaços em branco e normaliza dados
         data.forEach(row => {
           colunasDesejadas.forEach(col => {
             if (row[col]) row[col] = row[col].trim();
@@ -157,7 +154,6 @@
         const filterRow = document.querySelector("#planilha thead tr.filters");
         const tableBody = document.querySelector("#planilha tbody");
 
-        // Cabeçalhos e filtros
         colunasDesejadas.forEach(col => {
           if (headers.includes(col)) {
             headerRow.innerHTML += `<th>${col}</th>`;
@@ -165,7 +161,6 @@
           }
         });
 
-        // Monta linhas garantido ordem e valores
         data.forEach(row => {
           let rowHtml = "<tr>";
           colunasDesejadas.forEach(col => {
@@ -179,7 +174,6 @@
           tableBody.innerHTML += rowHtml;
         });
 
-        // Inicializa DataTable
         const table = $("#planilha").DataTable({
           paging: false,
           searching: true,
@@ -188,7 +182,6 @@
           fixedHeader: true
         });
 
-        // Filtros dinâmicos ajustados
         table.columns().every(function (i) {
           const column = this;
           const select = $(filterRow).find("select").eq(i);
@@ -208,9 +201,7 @@
 
           select.on("change", function () {
             const val = $.fn.dataTable.util.escapeRegex($(this).val());
-            column
-              .search(val ? "^" + val + "$" : "", true, false)
-              .draw();
+            column.search(val ? "^" + val + "$" : "", true, false).draw();
           });
         });
       }

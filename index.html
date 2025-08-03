@@ -9,9 +9,26 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-    table { width: 100%; font-size: 14px; }
-    th { background: #16a085; color: white; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    table {
+      width: 100%;
+      font-size: 14px;
+    }
+    th {
+      background: #2980b9;
+      color: white;
+    }
+    input, select {
+      width: 100%;
+      box-sizing: border-box;
+    }
   </style>
 </head>
 <body>
@@ -20,48 +37,50 @@
     <thead><tr></tr></thead>
     <tbody></tbody>
   </table>
-  <p id="erro" style="color:red;"></p>
 
   <script>
-    const sheetID = "1uGSZ8hmaN2iB3x9uuUAoi91omc9JMODF3HVIFHgt4Yc";
-    const sheetName = "dados";
+    const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
+    const sheetName = "Página1"; // Altere se o nome da aba for diferente
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
-
-    console.log("Tentando buscar CSV em:", csvUrl);
 
     Papa.parse(csvUrl, {
       download: true,
       header: true,
-      error: function(err) {
-        console.error("Erro no PapaParse:", err);
-        $('#erro').text("Falha ao carregar CSV. Verifique compartilhamento e nome da aba.");
-      },
       complete: function(results) {
-        if (!results.data || results.data.length === 0) {
-          $('#erro').text("Dados não encontrados ou acessíveis. Verifique o CSV manualmente.");
-          return;
-        }
         const data = results.data;
+        const tableHead = $('#planilha thead tr');
+        const tableBody = $('#planilha tbody');
+
         const headers = Object.keys(data[0]);
-        headers.forEach(h => $('#planilha thead tr').append(`<th>${h}</th>`));
+        headers.forEach(h => tableHead.append(`<th>${h}</th>`));
+
         data.forEach(row => {
           let rowHtml = '<tr>';
-          headers.forEach(h => rowHtml += `<td>${row[h]||""}</td>`);
+          headers.forEach(h => {
+            rowHtml += `<td>${row[h] || ""}</td>`;
+          });
           rowHtml += '</tr>';
-          $('#planilha tbody').append(rowHtml);
+          tableBody.append(rowHtml);
         });
+
         $('#planilha').DataTable({
-          paging: false, searching: true, info: false, scrollX: true,
+          paging: false,
+          searching: true,
+          info: false,
+          scrollX: true,
           initComplete: function () {
             this.api().columns().every(function () {
               const column = this;
-              const sel = $('<select><option value="">Filtrar</option></select>')
+              const select = $('<select><option value="">Filtrar</option></select>')
                 .appendTo($(column.header()).empty())
                 .on('change', function () {
                   const val = $.fn.dataTable.util.escapeRegex($(this).val());
                   column.search(val ? '^' + val + '$' : '', true, false).draw();
                 });
-              column.data().unique().sort().each(d => { if (d) sel.append(`<option value="${d}">${d}</option>`); });
+
+              column.data().unique().sort().each(function (d) {
+                if (d) select.append('<option value="' + d + '">' + d + '</option>');
+              });
             });
           }
         });

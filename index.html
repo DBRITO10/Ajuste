@@ -6,7 +6,9 @@
   <title>Ajuste de Notas - Portal Logística</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.3.2/css/fixedHeader.dataTables.min.css">
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
@@ -75,6 +77,18 @@
     const gid = "0"; // Primeira aba da planilha
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 
+    // Colunas que devem ser exibidas
+    const colunasDesejadas = [
+      "SENHA",
+      "DATA",
+      "CENTRAL",
+      "CARGAS/TRANSPORTE",
+      "NOTAS",
+      "STATUS DA CARGA",
+      "FORNECEDOR",
+      "TIPO DE PRODUTO"
+    ];
+
     Papa.parse(csvUrl, {
       download: true,
       header: true,
@@ -89,25 +103,32 @@
         const tableHead = $('#planilha thead tr');
         const tableBody = $('#planilha tbody');
 
-        // Criar cabeçalhos
-        headers.forEach(h => tableHead.append(`<th>${h}</th>`));
+        // Criar cabeçalhos apenas das colunas desejadas
+        colunasDesejadas.forEach(col => {
+          if (headers.includes(col)) {
+            tableHead.append(`<th>${col}</th>`);
+          }
+        });
 
-        // Criar linhas
+        // Criar linhas apenas das colunas desejadas
         data.forEach(row => {
           let rowHtml = '<tr>';
-          headers.forEach(h => {
-            rowHtml += `<td>${row[h] || ''}</td>`;
+          colunasDesejadas.forEach(col => {
+            if (headers.includes(col)) {
+              rowHtml += `<td>${row[col] || ''}</td>`;
+            }
           });
           rowHtml += '</tr>';
           tableBody.append(rowHtml);
         });
 
-        // Inicializar DataTable com filtros
+        // Inicializar DataTable com cabeçalho fixo
         $('#planilha').DataTable({
           paging: false,
           searching: true,
           info: false,
           scrollX: true,
+          fixedHeader: true,
           initComplete: function () {
             this.api().columns().every(function () {
               const column = this;

@@ -4,69 +4,104 @@
 <head>
   <meta charset="UTF-8">
   <title>Ajuste de Notas - Portal Logística</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Libs -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  
+  <!-- Estilos do DataTable -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.3.2/css/fixedHeader.dataTables.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  
   <style>
+    /* 🎨 Variáveis do Tema */
+    :root {
+      --cor-fundo-dashboard: #1e1e2f;
+      --cor-cabecalho: linear-gradient(90deg, #00c6ff, #0072ff);
+      --cor-texto-cabecalho: #ffffff;
+      --cor-linha-par: #2b2b40;
+      --cor-linha-impar: #242437;
+      --cor-filtro: #ffffff;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--cor-fundo-dashboard);
+      color: white;
       padding: 20px;
     }
 
     h1 {
       margin-bottom: 20px;
-      color: #333;
+      color: #ffffff;
+      font-size: 24px;
     }
 
     table {
       width: 100%;
       font-size: 14px;
-      border-collapse: separate;
-      border-spacing: 0;
+      border-collapse: collapse;
     }
 
     th {
-      background: #16a085;
-      color: white;
-      padding: 6px 10px;
+      background: var(--cor-cabecalho);
+      color: var(--cor-texto-cabecalho);
+      padding: 10px;
       text-align: center;
       white-space: nowrap;
       vertical-align: bottom;
+      font-weight: bold;
     }
 
     td {
-      background: #fff;
       padding: 8px 12px;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #444;
       white-space: nowrap;
     }
 
-    /* Ajuste para filtros ficarem abaixo do texto */
+    tbody tr:nth-child(even) {
+      background-color: var(--cor-linha-par);
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: var(--cor-linha-impar);
+    }
+
     .filter-select {
-      margin-top: 4px;
+      margin-top: 6px;
       width: 100%;
       box-sizing: border-box;
-      padding: 3px;
+      padding: 4px;
       font-size: 12px;
-      background: white;
-      color: black;
+      background: var(--cor-filtro);
+      color: #000;
       border: none;
       border-radius: 4px;
     }
 
-    /* Ajusta espaçamento e largura mínima para melhor leitura */
     table.dataTable th,
     table.dataTable td {
-      min-width: 120px;
+      min-width: 140px;
     }
 
-    /* Ajusta rolagem horizontal */
     div.dataTables_wrapper {
       overflow-x: auto;
+    }
+
+    ::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #555;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background-color: #2e2e3e;
     }
   </style>
 </head>
@@ -79,7 +114,7 @@
 
   <script>
     const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
-    const gid = "0"; // Primeira aba da planilha
+    const gid = "0";
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 
     const colunasDesejadas = [
@@ -99,7 +134,7 @@
       complete: function(results) {
         const data = results.data;
         if (!data.length || Object.keys(data[0]).length === 0) {
-          alert("Falha ao carregar dados. Verifique se a aba contém dados válidos.");
+          alert("Falha ao carregar dados.");
           return;
         }
 
@@ -107,7 +142,7 @@
         const tableHead = $('#planilha thead tr');
         const tableBody = $('#planilha tbody');
 
-        // Criar cabeçalhos (texto do título)
+        // Criar cabeçalhos com filtro
         colunasDesejadas.forEach(col => {
           if (headers.includes(col)) {
             tableHead.append(`<th>${col}<br><select class="filter-select"><option value="">Filtrar</option></select></th>`);
@@ -118,15 +153,13 @@
         data.forEach(row => {
           let rowHtml = '<tr>';
           colunasDesejadas.forEach(col => {
-            if (headers.includes(col)) {
-              rowHtml += `<td>${row[col] || ''}</td>`;
-            }
+            rowHtml += `<td>${row[col] || ''}</td>`;
           });
           rowHtml += '</tr>';
           tableBody.append(rowHtml);
         });
 
-        // Inicializar DataTable
+        // Inicializa a tabela com filtros e cabeçalho fixo
         const table = $('#planilha').DataTable({
           paging: false,
           searching: true,
@@ -135,7 +168,7 @@
           fixedHeader: true
         });
 
-        // Popular selects com valores únicos
+        // Configura filtros dinâmicos
         table.columns().every(function () {
           const column = this;
           const select = $(column.header()).find('select');

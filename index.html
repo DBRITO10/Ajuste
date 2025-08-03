@@ -32,9 +32,10 @@
     th {
       background: #16a085;
       color: white;
-      padding: 10px;
+      padding: 6px 10px;
       text-align: center;
       white-space: nowrap;
+      vertical-align: bottom;
     }
 
     td {
@@ -44,19 +45,23 @@
       white-space: nowrap;
     }
 
+    /* Ajuste para filtros ficarem abaixo do texto */
+    .filter-select {
+      margin-top: 4px;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 3px;
+      font-size: 12px;
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 4px;
+    }
+
     /* Ajusta espaçamento e largura mínima para melhor leitura */
     table.dataTable th,
     table.dataTable td {
       min-width: 120px;
-    }
-
-    /* Estilo dos selects de filtro */
-    select {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 4px;
-      font-size: 12px;
-      margin-top: 4px;
     }
 
     /* Ajusta rolagem horizontal */
@@ -77,7 +82,6 @@
     const gid = "0"; // Primeira aba da planilha
     const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 
-    // Colunas que devem ser exibidas
     const colunasDesejadas = [
       "SENHA",
       "DATA",
@@ -103,14 +107,14 @@
         const tableHead = $('#planilha thead tr');
         const tableBody = $('#planilha tbody');
 
-        // Criar cabeçalhos apenas das colunas desejadas
+        // Criar cabeçalhos (texto do título)
         colunasDesejadas.forEach(col => {
           if (headers.includes(col)) {
-            tableHead.append(`<th>${col}</th>`);
+            tableHead.append(`<th>${col}<br><select class="filter-select"><option value="">Filtrar</option></select></th>`);
           }
         });
 
-        // Criar linhas apenas das colunas desejadas
+        // Criar linhas
         data.forEach(row => {
           let rowHtml = '<tr>';
           colunasDesejadas.forEach(col => {
@@ -122,33 +126,28 @@
           tableBody.append(rowHtml);
         });
 
-        // Inicializar DataTable com cabeçalho fixo
-        $('#planilha').DataTable({
+        // Inicializar DataTable
+        const table = $('#planilha').DataTable({
           paging: false,
           searching: true,
           info: false,
           scrollX: true,
-          fixedHeader: true,
-          initComplete: function () {
-            this.api().columns().every(function () {
-              const column = this;
-              const select = $('<select><option value="">Filtrar</option></select>')
-                .appendTo($(column.header()))
-                .on('change', function () {
-                  const val = $.fn.dataTable.util.escapeRegex($(this).val());
-                  column.search(val ? '^' + val + '$' : '', true, false).draw();
-                });
-
-              column.data().unique().sort().each(function (d) {
-                if (d) select.append(`<option value="${d}">${d}</option>`);
-              });
-            });
-          }
+          fixedHeader: true
         });
-      },
-      error: function(err) {
-        console.error("Erro ao carregar CSV:", err);
-        alert("Erro ao carregar planilha. Verifique se está pública e o nome da aba.");
+
+        // Popular selects com valores únicos
+        table.columns().every(function () {
+          const column = this;
+          const select = $(column.header()).find('select');
+          column.data().unique().sort().each(function (d) {
+            if (d) select.append(`<option value="${d}">${d}</option>`);
+          });
+
+          select.on('change', function () {
+            const val = $.fn.dataTable.util.escapeRegex($(this).val());
+            column.search(val ? '^' + val + '$' : '', true, false).draw();
+          });
+        });
       }
     });
   </script>

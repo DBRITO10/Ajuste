@@ -205,11 +205,10 @@
           searching: true,
           info: false,
           scrollX: true,
-          fixedHeader: true,
+          fixedHeader: window.innerWidth > 768, // 👈 ADAPTATIVO
           autoWidth: false
         });
 
-        // 👇 Corrige o desalinhamento após carregar os dados
         setTimeout(() => {
           table.columns.adjust().draw();
         }, 300);

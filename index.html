@@ -9,12 +9,10 @@
   <!-- Libs -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <!-- CSS DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.3.2/css/fixedHeader.dataTables.min.css" />
 
   <style>
     :root {
@@ -75,6 +73,7 @@
       padding: 8px 12px;
       border-bottom: 1px solid #444;
       white-space: nowrap;
+      text-align: center;
     }
 
     thead tr.filters th {
@@ -90,6 +89,7 @@
       border: none;
       border-radius: 4px;
       color: #eee;
+      text-align: center;
     }
 
     table.dataTable th,
@@ -175,25 +175,20 @@
           });
         });
 
-        const headers = Object.keys(data[0]);
         const headerRow = document.querySelector("#planilha thead tr.headers");
         const filterRow = document.querySelector("#planilha thead tr.filters");
         const tableBody = document.querySelector("#planilha tbody");
 
         colunasDesejadas.forEach(col => {
-          if (headers.includes(col)) {
-            headerRow.innerHTML += `<th>${col}</th>`;
-            filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`;
-          }
+          headerRow.innerHTML += `<th>${col}</th>`;
+          filterRow.innerHTML += `<th><select class="filter-select"><option value="">Filtrar</option></select></th>`;
         });
 
         data.forEach(row => {
           let rowHtml = "<tr>";
           colunasDesejadas.forEach(col => {
             let valor = row[col] || "";
-            if (col === "NOTAS" && valor === "") {
-              valor = "Sem nota";
-            }
+            if (col === "NOTAS" && valor === "") valor = "Sem nota";
             rowHtml += `<td>${valor}</td>`;
           });
           rowHtml += "</tr>";
@@ -205,7 +200,6 @@
           searching: true,
           info: false,
           scrollX: true,
-          fixedHeader: window.innerWidth > 768, // 👈 ADAPTATIVO
           autoWidth: false
         });
 
@@ -216,13 +210,11 @@
         table.columns().every(function (i) {
           const column = this;
           const select = $(filterRow).find("select").eq(i);
-
           const uniqueData = [];
+
           column.data().unique().sort().each(function (d) {
             let val = d.trim();
-            if (val === "" && colunasDesejadas[i] === "NOTAS") {
-              val = "Sem nota";
-            }
+            if (val === "" && colunasDesejadas[i] === "NOTAS") val = "Sem nota";
             if (!uniqueData.includes(val)) uniqueData.push(val);
           });
 

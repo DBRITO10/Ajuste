@@ -3,99 +3,78 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ajuste de Notas - Portal Logística</title>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
-    table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    table { width: 100%; font-size: 14px; }
     th { background: #16a085; color: white; }
-    tr:nth-child(even) { background: #f9f9f9; }
-    input, select { width: 100%; padding: 4px; box-sizing: border-box; }
+    input, select { width: 100%; box-sizing: border-box; }
   </style>
 </head>
 <body>
   <h1>Ajuste de Notas das Cargas Agendadas</h1>
-
-  <table>
+  <table id="planilha" class="display">
     <thead>
-      <tr>
-        <th>SENHA</th>
-        <th>DATA</th>
-        <th>CENTRAL</th>
-        <th>CARGA/TRANSPORTE</th>
-        <th>ORDEM DE COMPRA</th>
-        <th>NOTAS</th>
-        <th>STATUS DA CARGA</th>
-        <th>FORNECEDOR</th>
-        <th>TIPO DE PRODUTO</th>
-        <th>LINHA DE SEPARAÇÃO</th>
-        <th>Qtde Volumes</th>
-      </tr>
+      <tr></tr>
     </thead>
-    <tbody id="tabela-corpo">
-      <tr>
-        <td>19328</td>
-        <td>02/08/2025</td>
-        <td>PINHEIROS</td>
-        <td>CARGA: 112264</td>
-        <td>4500063446</td>
-        <td><input type="text" value="234548" onchange="autoSalvar(this)"></td>
-        <td>
-          <select onchange="autoSalvar(this)">
-            <option selected>OK NO AJUSTE</option>
-            <option>CANCELADA</option>
-            <option>REAGENDADA</option>
-          </select>
-        </td>
-        <td>BOM PASTOR</td>
-        <td>COLCHÕES</td>
-        <td>GRANDEZA 05</td>
-        <td>97</td>
-      </tr>
-      <tr>
-        <td>19353</td>
-        <td>02/08/2025</td>
-        <td>PINHEIROS</td>
-        <td>CARGA: 34519</td>
-        <td>4500064677</td>
-        <td><input type="text" value="" onchange="autoSalvar(this)"></td>
-        <td>
-          <select onchange="autoSalvar(this)">
-            <option>OK NO AJUSTE</option>
-            <option selected>CANCELADA</option>
-            <option>REAGENDADA</option>
-          </select>
-        </td>
-        <td>DESIGN</td>
-        <td>COLCHÕES</td>
-        <td>GRANDEZA 05</td>
-        <td>100</td>
-      </tr>
-      <!-- Adicione mais linhas conforme necessário -->
-    </tbody>
+    <tbody></tbody>
   </table>
 
   <script>
-    function autoSalvar(elemento) {
-      const linha = elemento.closest('tr');
-      const dados = {
-        senha: linha.children[0].textContent,
-        data: linha.children[1].textContent,
-        central: linha.children[2].textContent,
-        carga: linha.children[3].textContent,
-        ordemCompra: linha.children[4].textContent,
-        notas: linha.children[5].querySelector('input')?.value || '',
-        status: linha.children[6].querySelector('select')?.value || '',
-        fornecedor: linha.children[7].textContent,
-        tipoProduto: linha.children[8].textContent,
-        linhaSeparacao: linha.children[9].textContent,
-        volumes: linha.children[10].textContent
-      };
+    const sheetID = "1uGSZ8hmaN2iB3x9uuUAoi91omc9JMODF3HVIFHgt4Yc";
+    const sheetName = "Página1";
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`;
 
-      console.log('Alteração salva:', dados);
-      // Aqui você pode enviar via fetch() para API ou Google Sheets futuramente
-    }
+    Papa.parse(csvUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        const data = results.data;
+        const tableHead = $('#planilha thead tr');
+        const tableBody = $('#planilha tbody');
+        
+        // Cabeçalhos
+        const headers = Object.keys(data[0]);
+        headers.forEach(h => tableHead.append(`<th>${h}</th>`));
+
+        // Linhas
+        data.forEach(row => {
+          let rowHtml = '<tr>';
+          headers.forEach(h => {
+            rowHtml += `<td>${row[h]}</td>`;
+          });
+          rowHtml += '</tr>';
+          tableBody.append(rowHtml);
+        });
+
+        // Ativa o DataTable com filtros
+        $('#planilha').DataTable({
+          paging: false,
+          searching: true,
+          info: false,
+          scrollX: true,
+          initComplete: function () {
+            this.api().columns().every(function () {
+              const column = this;
+              const select = $('<select><option value="">Filtrar</option></select>')
+                .appendTo($(column.header()).empty())
+                .on('change', function () {
+                  const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                  column.search(val ? '^' + val + '$' : '', true, false).draw();
+                });
+
+              column.data().unique().sort().each(function (d) {
+                if (d) select.append('<option value="' + d + '">' + d + '</option>');
+              });
+            });
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>

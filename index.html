@@ -73,63 +73,88 @@
   <script>
     const sheetID = "1LaYf3GKID_HdueUpZax7J_aco2-a1UVFBz1pZ4CkUGk";
     const sheetName = "dados";
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        const data = results.data;
-        if (!data.length || Object.keys(data[0]).length === 0) {
-          alert("Falha ao carregar dados. Verifique se a aba contém dados válidos.");
+    // 1️⃣ Primeiro, buscamos o GID da aba pelo nome
+    fetch(`https://spreadsheets.google.com/feeds/worksheets/${sheetID}/public/full?alt=json`)
+      .then(res => res.json())
+      .then(json => {
+        const sheet = json.feed.entry.find(e => 
+          e.title.$t.trim().toLowerCase() === sheetName.toLowerCase()
+        );
+
+        if (!sheet) {
+          alert(`Aba "${sheetName}" não encontrada.`);
           return;
         }
 
-        const headers = Object.keys(data[0]);
-        const tableHead = $('#planilha thead tr');
-        const tableBody = $('#planilha tbody');
+        const gid = sheet.id.$t.split('/').pop();
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv&gid=${gid}`;
 
-        // Criar cabeçalhos
-        headers.forEach(h => tableHead.append(`<th>${h}</th>`));
+        carregarPlanilha(csvUrl);
+      })
+      .catch(err => {
+        console.error("Erro ao buscar GID:", err);
+        alert("Erro ao identificar a aba. Verifique se a planilha está pública.");
+      });
 
-        // Criar linhas
-        data.forEach(row => {
-          let rowHtml = '<tr>';
-          headers.forEach(h => {
-            rowHtml += `<td>${row[h] || ''}</td>`;
-          });
-          rowHtml += '</tr>';
-          tableBody.append(rowHtml);
-        });
-
-        // Inicializar DataTable
-        $('#planilha').DataTable({
-          paging: false,
-          searching: true,
-          info: false,
-          scrollX: true,
-          initComplete: function () {
-            this.api().columns().every(function () {
-              const column = this;
-              const select = $('<select><option value="">Filtrar</option></select>')
-                .appendTo($(column.header()))
-                .on('change', function () {
-                  const val = $.fn.dataTable.util.escapeRegex($(this).val());
-                  column.search(val ? '^' + val + '$' : '', true, false).draw();
-                });
-
-              column.data().unique().sort().each(function (d) {
-                if (d) select.append(`<option value="${d}">${d}</option>`);
-              });
-            });
+    // 2️⃣ Função para carregar e renderizar a planilha
+    function carregarPlanilha(csvUrl) {
+      Papa.parse(csvUrl, {
+        download: true,
+        header: true,
+        complete: function(results) {
+          const data = results.data;
+          if (!data.length || Object.keys(data[0]).length === 0) {
+            alert("Falha ao carregar dados. Verifique se a aba contém dados válidos.");
+            return;
           }
-        });
-      },
-      error: function(err) {
-        console.error("Erro ao carregar CSV:", err);
-        alert("Erro ao carregar planilha. Verifique se está pública e o nome da aba.");
-      }
-    });
+
+          const headers = Object.keys(data[0]);
+          const tableHead = $('#planilha thead tr');
+          const tableBody = $('#planilha tbody');
+
+          // Criar cabeçalhos
+          headers.forEach(h => tableHead.append(`<th>${h}</th>`));
+
+          // Criar linhas
+          data.forEach(row => {
+            let rowHtml = '<tr>';
+            headers.forEach(h => {
+              rowHtml += `<td>${row[h] || ''}</td>`;
+            });
+            rowHtml += '</tr>';
+            tableBody.append(rowHtml);
+          });
+
+          // Inicializar DataTable com filtros
+          $('#planilha').DataTable({
+            paging: false,
+            searching: true,
+            info: false,
+            scrollX: true,
+            initComplete: function () {
+              this.api().columns().every(function () {
+                const column = this;
+                const select = $('<select><option value="">Filtrar</option></select>')
+                  .appendTo($(column.header()))
+                  .on('change', function () {
+                    const val = $.fn.dataTable.util.escapeRegex($(this).val());
+                    column.search(val ? '^' + val + '$' : '', true, false).draw();
+                  });
+
+                column.data().unique().sort().each(function (d) {
+                  if (d) select.append(`<option value="${d}">${d}</option>`);
+                });
+              });
+            }
+          });
+        },
+        error: function(err) {
+          console.error("Erro ao carregar CSV:", err);
+          alert("Erro ao carregar planilha. Verifique se está pública e o nome da aba.");
+        }
+      });
+    }
   </script>
 </body>
 </html>

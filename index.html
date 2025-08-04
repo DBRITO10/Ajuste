@@ -3,7 +3,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>RECEBIMENTO/SIMONETTI</title>
+  <title>RECEBIMENTO - MÓVEIS SIMONETTI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Libs -->
@@ -94,6 +94,17 @@
       text-align: center;
     }
 
+    /* Deixa o texto do campo buscar branco */
+    input.dataTables_filter input {
+      color: white !important;
+      background: #3a3a5a !important;
+      border-radius: 4px;
+      border: 1px solid #555;
+      padding: 4px 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
     table.dataTable th,
     table.dataTable td {
       min-width: 120px;
@@ -124,7 +135,7 @@
   </style>
 </head>
 <body>
-  <h1>RECEBIMENTO/SIMONETTI</h1>
+  <h1>RECEBIMENTO - MÓVEIS SIMONETTI</h1>
   <table id="planilha" class="display nowrap">
     <thead>
       <tr class="headers"></tr>
@@ -206,6 +217,11 @@
           fixedHeader: {
             header: true,
             headerOffset: 0
+          },
+          language: {
+            search: "Buscar:",
+            zeroRecords: "Nenhum registro encontrado",
+            infoEmpty: "Nenhum dado disponível",
           }
         });
 
